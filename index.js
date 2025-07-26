@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 
@@ -11,6 +12,8 @@ if (!process.env.REPLICATE_API_TOKEN) {
     "⚠️  REPLICATE_API_TOKEN environment variable not set. Please set it before starting the server."
   );
 }
+
+console.log("REPLICATE_API_TOKEN", REPLICATE_API_TOKEN);
 
 app.use(cors());
 app.use(express.json({ limit: "20mb" }));
