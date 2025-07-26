@@ -15,7 +15,13 @@ if (!process.env.REPLICATE_API_TOKEN) {
 
 console.log("REPLICATE_API_TOKEN", REPLICATE_API_TOKEN);
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(express.json({ limit: "20mb" }));
 
 app.post("/replicate", async (req, res) => {
