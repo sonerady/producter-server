@@ -182,6 +182,85 @@ app.post("/background-remover", async (req, res) => {
   }
 });
 
+app.post("/increase-resolution", async (req, res) => {
+  try {
+    console.log("🔍 Increase resolution request received:", {
+      hasImageUrl: !!req.body.image_url,
+    });
+
+    const { image_url } = req.body;
+
+    const input = {
+      sync: true,
+      image: image_url,
+      preserve_alpha: true,
+      desired_increase: 4,
+      content_moderation: false,
+    };
+
+    console.log("🚀 Sending to Replicate Bria Increase Resolution API...");
+
+    const response = await fetch(
+      "https://api.replicate.com/v1/models/bria/increase-resolution/predictions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
+          "Content-Type": "application/json",
+          Prefer: "wait",
+        },
+        body: JSON.stringify({
+          input: input,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error("❌ Increase Resolution API error details:", {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorBody,
+      });
+      throw new Error(
+        `Increase Resolution API error: ${response.status} - ${errorBody}`
+      );
+    }
+
+    const result = await response.json();
+
+    console.log("✅ Increase Resolution response received:", {
+      status: result.status,
+      outputType: typeof result.output,
+      outputValue: result.output,
+    });
+
+    if (
+      result.status === "succeeded" ||
+      (result.status === "processing" && result.output)
+    ) {
+      const responseData = { output: result.output };
+      console.log("📤 Sending increase resolution response:", responseData);
+      res.json(responseData);
+    } else if (result.status === "failed") {
+      throw new Error(
+        `Increase resolution failed: ${result.error || "Unknown error"}`
+      );
+    } else {
+      throw new Error(
+        `Increase resolution status: ${result.status} - ${
+          result.error || "Waiting for completion"
+        }`
+      );
+    }
+  } catch (err) {
+    console.error("❌ Increase resolution proxy error:", err);
+    res
+      .status(500)
+      .json({ error: "Increase resolution proxy error", detail: err.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`🟢 Replicate proxy listening on http://localhost:${PORT}`);
   console.log(
